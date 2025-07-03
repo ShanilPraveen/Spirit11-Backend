@@ -13,48 +13,39 @@ model User {
   username    String   @unique
   keycloakId  String   @unique
   role        String
-  team        Team?    @relation(fields: [teamId], references: [id])
-  teamId      String?
+  team        Team?
 }
-
-
-model Player {
-  id          String   @id @default(uuid())
-  name        String
-  university  String
-  position    String
-  value       Int
-  stat        Stat?    @relation(fields: [statId], references: [id])
-  statId      String?
-  teamPlayers TeamPlayer[]
-}
-
-
-model Stat {
-  id       String   @id @default(uuid())
-  runs     Int
-  wickets  Int
-  player   Player?  @relation(fields: [playerId], references: [id])
-  playerId String?
-}
-
 
 model Team {
   id         String   @id @default(uuid())
-  user       User     @relation(fields: [userId], references: [id])
   userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id])
   players    TeamPlayer[]
   createdAt  DateTime @default(now())
 }
 
+model Player {
+  id             String       @id @default(uuid())
+  name           String
+  university     String
+  position       String       // e.g., "Batsman", "All-Rounder"
+  value          Int          // fantasy value (credits)
+  runs           Int
+  ballsFaced     Int
+  inningsPlayed  Int
+  wickets        Int
+  oversBowled    Float
+  runsConceded   Int
+  teamPlayers    TeamPlayer[]
+}
 
 model TeamPlayer {
   id        String   @id @default(uuid())
-  team      Team     @relation(fields: [teamId], references: [id])
   teamId    String
-  player    Player   @relation(fields: [playerId], references: [id])
   playerId  String
+  team      Team     @relation(fields: [teamId], references: [id])
+  player    Player   @relation(fields: [playerId], references: [id])
   addedAt   DateTime @default(now())
 
-  @@unique([teamId, playerId])
+  @@unique([teamId, playerId]) 
 }
