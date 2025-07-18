@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const authenticateToken = require('../middlewares/auth');
 
 router.get("/", async (req, res) => {
     try {
@@ -17,7 +18,7 @@ router.get("/", async (req, res) => {
     }
 })
 
-router.post("/create",async(req,res)=>{
+router.post("/create",authenticateToken,async(req,res)=>{
     const {userId} = req.body;
     try {
         const existing = await prisma.team.findUnique({
@@ -36,8 +37,15 @@ router.post("/create",async(req,res)=>{
     }
 })
 
-router.post("/addPlayer", async (req, res) => {
+router.post("/addPlayer",authenticateToken, async (req, res) => {
     const { userId, playerId } = req.body;
+    const player = await prisma.player.findUnique({ where: { id: playerId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (user.money < player.value) {
+        return res.status(400).json({ error: "Not enough balance" });
+    }
+
     try {
         const team = await prisma.team.findUnique({
             where: { userId },
@@ -53,6 +61,10 @@ router.post("/addPlayer", async (req, res) => {
         const added = await prisma.teamPlayer.create({
             data: { teamId: team.id, playerId: playerId }
         });
+        await prisma.user.update({
+            where: { id: userId },
+            data: { money: user.money - player.value }
+        });
 
         res.status(201).json(added);
     } catch (error) {
@@ -61,7 +73,7 @@ router.post("/addPlayer", async (req, res) => {
     }
 })
 
-router.get("/my",async(req,res)=>{
+router.get("/my",authenticateToken,async(req,res)=>{
     const {userId} = req.query;
     try {
         const team = await prisma.team.findUnique({
@@ -85,9 +97,13 @@ router.get("/my",async(req,res)=>{
     }
 });
 
-router.delete("/removePlayer/:id", async (req, res) => {
+router.delete("/removePlayer/:id",authenticateToken, async (req, res) => {
     const { id: playerId } = req.params;
     const { userId } = req.body;
+
+    const player = await prisma.player.findUnique({ where: { id: playerId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
     try {
         const team = await prisma.team.findUnique({
             where: { userId: userId },
@@ -102,6 +118,11 @@ router.delete("/removePlayer/:id", async (req, res) => {
                 playerId: playerId
             }
         });
+        await prisma.user.update({
+            where: { id: userId },
+            data: { money: user.money + player.value }
+        });
+
         res.status(200).json({ message: "Player removed from team successfully" });
     } catch (error) {
         console.error("Error removing player from team:", error);

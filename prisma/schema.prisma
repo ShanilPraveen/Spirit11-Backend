@@ -11,9 +11,11 @@ datasource db {
 model User {
   id          String   @id @default(uuid())
   username    String   @unique
-  keycloakId  String   @unique
+  password    String   @unique
   role        String
   team        Team?
+  money       Int      @default(2000000)
+  refreshTokens RefreshToken[]
 }
 
 model Team {
@@ -48,4 +50,12 @@ model TeamPlayer {
   addedAt   DateTime @default(now())
 
   @@unique([teamId, playerId]) 
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
