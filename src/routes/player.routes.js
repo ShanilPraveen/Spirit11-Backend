@@ -99,6 +99,36 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+router.get('/', async (req, res) => {
+  const { position, university, page = 1, limit = 10 } = req.query;
+
+  const filters = {};
+  if (position) filters.position = position;
+  if (university) filters.university = university;
+
+  try {
+    const players = await prisma.player.findMany({
+      where: filters,
+      skip: (page - 1) * limit,
+      take: parseInt(limit),
+      orderBy: { name: 'asc' }
+    });
+
+    const total = await prisma.player.count({ where: filters });
+
+    res.json({
+      data: players,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+      totalPlayers: total
+    });
+  } catch (err) {
+    console.error('Error filtering players:', err);
+    res.status(500).json({ error: 'Failed to fetch players' });
+  }
+});
+
+
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
 
