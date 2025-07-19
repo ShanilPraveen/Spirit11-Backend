@@ -114,6 +114,27 @@ router.post("/refresh",async (req, res) => {
     }
 });
 
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        money: true
+      }
+    });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 router.get("/logout", async (req, res) => {
     const {token} = req.query;
     try{
