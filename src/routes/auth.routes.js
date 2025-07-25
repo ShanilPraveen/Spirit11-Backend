@@ -4,6 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const jwt = require('jsonwebtoken');  
 const bcrypt = require('bcryptjs');
+const authenticateToken = require('../middlewares/auth');
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
@@ -38,13 +39,28 @@ router.post("/signup", async (req, res) => {
             data: {
                 username,
                 password: hashedPassword,
-                role: role || 'user'  // Default role to 'user' if not provided
+                role: role || 'user',
+                money: 10000000 // Default money value
             },
         });
-        res.status(201).json({ message: "User created successfully", userId: newUser.id });
+        
+        const tokens = await generateTokens(newUser);
+
+        res.status(201).json({
+            user: {
+                id: newUser.id,
+                username: newUser.username,
+                role: newUser.role,
+                money: newUser.money
+            },
+            ...tokens
+        });
 
         
     } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            return res.status(409).json({ error: "Username already exists" });
+        }
         console.error("Error signing up:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
@@ -72,7 +88,15 @@ router.post("/login", async (req, res) => {
         }
 
         const tokens = await generateTokens(user);
-        res.status(200).json(tokens);
+        res.status(200).json({
+            user: {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                money: user.money
+            },
+            ...tokens
+        });
         
     } catch (error) {
         console.error("Error logging in:", error);
@@ -106,7 +130,7 @@ router.post("/refresh",async (req, res) => {
         }
 
         const tokens = await generateTokens(user);
-        res.status(200).json(tokens);
+        res.status(200).json({accessToken: tokens.accessToken, refreshToken: tokens.refreshToken});
 
     } catch (error) {
         console.error("Error refreshing token:", error);
@@ -135,8 +159,8 @@ router.get('/me', authenticateToken, async (req, res) => {
 });
 
 
-router.get("/logout", async (req, res) => {
-    const {token} = req.query;
+router.post("/logout", async (req, res) => {
+    const {token} = req.body;
     try{
         await prisma.refreshToken.delete({
             where: { token }
