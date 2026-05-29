@@ -30,8 +30,8 @@ model Player {
   id             String       @id @default(uuid())
   name           String
   university     String
-  position       String       // e.g., "Batsman", "All-Rounder"
-  value          Int          // fantasy value (credits)
+  position       String       
+  value          Int          
   runs           Int
   ballsFaced     Int
   inningsPlayed  Int
