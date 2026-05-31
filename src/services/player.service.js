@@ -42,9 +42,11 @@ async function getAllPlayers({ position, university, page = 1, limit = 100 } = {
 
 /**
  * Returns a single player by ID.
- * Always includes computed points (admin uses this; user UI must not render points).
+ *
+ * @param {string}  id
+ * @param {boolean} includePoints - true only for admin callers; NEVER set for user-facing requests.
  */
-async function getPlayerById(id) {
+async function getPlayerById(id, includePoints = false) {
   const player = await prisma.player.findUnique({ where: { id } });
 
   if (!player) {
@@ -53,7 +55,7 @@ async function getPlayerById(id) {
     throw err;
   }
 
-  return withPoints(player);
+  return includePoints ? withPoints(player) : player;
 }
 
 /** Creates a new player (admin only). Returns the player with computed points. */

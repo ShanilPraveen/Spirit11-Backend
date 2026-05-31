@@ -12,12 +12,16 @@ async function getAllPlayers(req, res) {
 
 async function getPlayerById(req, res) {
   try {
-    const player = await playerService.getPlayerById(req.params.id);
+    // Only admin callers receive the computed `points` field.
+    // Regular users get a clean player object — points are never exposed to them.
+    const isAdmin = req.user?.role === 'admin';
+    const player = await playerService.getPlayerById(req.params.id, isAdmin);
     res.status(200).json(player);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message || 'Internal Server Error' });
   }
 }
+
 
 async function createPlayer(req, res) {
   try {
