@@ -1,31 +1,45 @@
-const express = require('express');
 require('dotenv').config();
-const playerRoutes = require('./routes/player.routes');
-const teamRoutes = require('./routes/team.routes');
-const authRoutes = require('./routes/auth.routes');
-const leaderboardRoutes = require('./routes/leaderboard.routes');
+const express    = require('express');
+const http       = require('http');
+const cors       = require('cors');
 const cookieParser = require('cookie-parser');
-const app = express();
 
-const cors = require('cors');
+const { initSocket } = require('./config/socket');
+const playerRoutes     = require('./routes/player.routes');
+const teamRoutes       = require('./routes/team.routes');
+const authRoutes       = require('./routes/auth.routes');
+const leaderboardRoutes = require('./routes/leaderboard.routes');
+
+const app        = express();
+const httpServer = http.createServer(app);
+
+// ── WebSocket (Socket.IO) ────────────────────────────────────────────────────
+// Must be initialised before routes so controllers can call getIO() safely.
+initSocket(httpServer);
+
+// ── Global middleware ────────────────────────────────────────────────────────
 app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials: true
+  origin:      process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
 }));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use('/api/players', playerRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/auth', authRoutes);
+
+// ── API routes ───────────────────────────────────────────────────────────────
+app.use('/api/auth',        authRoutes);
+app.use('/api/players',     playerRoutes);
+app.use('/api/teams',       teamRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 
-app.get('/',(req,res)=>{
-    res.send('Spirit11 backend is running!');
+// ── Health check ─────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Spirit11 backend is running!' });
 });
 
+// ── Start ────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
-app.listen(PORT,()=>{
-    console.log(`server is running on port ${PORT}`);
+httpServer.listen(PORT, () => {
+  console.log(`🚀 HTTP server   → http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket     → ws://localhost:${PORT}`);
 });

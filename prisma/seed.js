@@ -4,74 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const bcrypt = require('bcryptjs');
+const { calculatePoints, calculateValue } = require('../src/utils/points');
 
-// ---------------------------------------------------------------------------
-// Formula helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Batting Strike Rate = (Total Runs / Total Balls Faced) * 100
- */
-function battingStrikeRate(runs, ballsFaced) {
-  if (ballsFaced === 0) return 0;
-  return (runs / ballsFaced) * 100;
-}
-
-/**
- * Batting Average = Total Runs / Innings Played
- */
-function battingAverage(runs, inningsPlayed) {
-  if (inningsPlayed === 0) return 0;
-  return runs / inningsPlayed;
-}
-
-/**
- * Bowling Strike Rate = Total Balls Bowled / Total Wickets Taken
- */
-function bowlingStrikeRate(ballsBowled, wickets) {
-  if (wickets === 0) return null; // Cannot divide by zero — excluded from bowling component
-  return ballsBowled / wickets;
-}
-
-/**
- * Economy Rate = (Total Runs Conceded / Total Balls Bowled) * 6
- */
-function economyRate(runsConceded, ballsBowled) {
-  if (ballsBowled === 0) return null; // Cannot divide by zero — excluded from bowling component
-  return (runsConceded / ballsBowled) * 6;
-}
-
-/**
- * Player Points =
- *   (Batting Strike Rate / 5)
- *   + (Batting Average * 0.8)
- *   + (500 / Bowling Strike Rate)   [only if wickets > 0]
- *   + (140 / Economy Rate)          [only if balls bowled > 0]
- */
-function calculatePoints(runs, ballsFaced, inningsPlayed, wickets, oversBowled, runsConceded) {
-  const ballsBowled = Math.round(oversBowled * 6);
-
-  const bsr = battingStrikeRate(runs, ballsFaced);
-  const ba  = battingAverage(runs, inningsPlayed);
-  const bwsr = bowlingStrikeRate(ballsBowled, wickets);
-  const er   = economyRate(runsConceded, ballsBowled);
-
-  let points = 0;
-  points += bsr / 5;
-  points += ba * 0.8;
-  if (bwsr !== null) points += 500 / bwsr;
-  if (er   !== null) points += 140 / er;
-
-  return points;
-}
-
-/**
- * Player Value = round( ((9 * Points) + 100) * 1000 ) to nearest 50,000
- */
-function calculateValue(points) {
-  const rawValue = ((9 * points) + 100) * 1000;
-  return Math.round(rawValue / 50000) * 50000;
-}
+// Formula logic is in src/utils/points.js — imported above.
 
 // ---------------------------------------------------------------------------
 // Seeding
