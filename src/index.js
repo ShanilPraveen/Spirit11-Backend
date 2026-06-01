@@ -9,6 +9,7 @@ const playerRoutes     = require('./routes/player.routes');
 const teamRoutes       = require('./routes/team.routes');
 const authRoutes       = require('./routes/auth.routes');
 const leaderboardRoutes = require('./routes/leaderboard.routes');
+const chatbotRoutes     = require('./routes/chatbot.routes');
 
 const app        = express();
 const httpServer = http.createServer(app);
@@ -31,6 +32,7 @@ app.use('/api/auth',        authRoutes);
 app.use('/api/players',     playerRoutes);
 app.use('/api/teams',       teamRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/chatbot',     chatbotRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -42,4 +44,10 @@ const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 HTTP server   → http://localhost:${PORT}`);
   console.log(`🔌 WebSocket     → ws://localhost:${PORT}`);
+});
+
+// ── Global Process Safety ────────────────────────────────────────────────────
+// Prevent background SDK parsing or connection issues from taking down the server.
+process.on('unhandledRejection', (reason, promise) => {
+  console.warn('⚠️ Unhandled Promise Rejection (Process Saved from Crash):', reason);
 });
