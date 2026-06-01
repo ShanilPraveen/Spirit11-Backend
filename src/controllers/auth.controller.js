@@ -2,11 +2,12 @@ const authService = require('../services/auth.service');
 
 async function signup(req, res) {
   const { username, password, role } = req.body;
-  if (!username || !password || !role) {
-    return res.status(400).json({ error: 'Username, password, and role are required' });
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
   }
   try {
-    const result = await authService.signup(username, password, role, res);
+    // role defaults to 'user' — the admin is pre-seeded, never signed up via this endpoint
+    const result = await authService.signup(username, password, role || 'user', res);
     res.status(201).json(result);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message || 'Internal Server Error' });

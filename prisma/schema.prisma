@@ -14,7 +14,7 @@ model User {
   password    String
   role        String
   team        Team?
-  money       Int      @default(2000000)
+  money       Int      @default(10000000)
   refreshTokens RefreshToken[]
 }
 

@@ -1,5 +1,5 @@
 const prisma = require('../config/prisma');
-const { calculatePlayerPoints } = require('../utils/points');
+const { calculatePlayerPoints, calculatePoints, calculateValue } = require('../utils/points');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -58,17 +58,39 @@ async function getPlayerById(id, includePoints = false) {
   return includePoints ? withPoints(player) : player;
 }
 
-/** Creates a new player (admin only). Returns the player with computed points. */
+/** Creates a new player (admin only). Computes and persists value from stats. Returns the player with computed points. */
 async function createPlayer(data) {
-  const player = await prisma.player.create({ data });
+  // Always recompute value from the provided stats so the DB stays in sync
+  const points = calculatePoints(
+    Number(data.runs), Number(data.ballsFaced), Number(data.inningsPlayed),
+    Number(data.wickets), Number(data.oversBowled), Number(data.runsConceded),
+  );
+  const value = calculateValue(points);
+  const player = await prisma.player.create({ data: { ...data, value } });
   return withPoints(player);
 }
 
-/** Updates an existing player (admin only). Returns the updated player with computed points. */
+/** Updates an existing player (admin only). Recomputes and persists value from updated stats. Returns the updated player with computed points. */
 async function updatePlayer(id, data) {
+  // We need the current player to fill in any fields not provided in the update
+  const current = await prisma.player.findUnique({ where: { id } });
+  if (!current) {
+    const err = new Error('Player not found');
+    err.status = 404;
+    throw err;
+  }
+
+  // Merge current + incoming to compute updated value
+  const merged = { ...current, ...data };
+  const points = calculatePoints(
+    Number(merged.runs), Number(merged.ballsFaced), Number(merged.inningsPlayed),
+    Number(merged.wickets), Number(merged.oversBowled), Number(merged.runsConceded),
+  );
+  const value = calculateValue(points);
+
   let player;
   try {
-    player = await prisma.player.update({ where: { id }, data });
+    player = await prisma.player.update({ where: { id }, data: { ...data, value } });
   } catch (error) {
     if (error.code === 'P2025') {
       const err = new Error('Player not found');
