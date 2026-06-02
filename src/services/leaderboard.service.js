@@ -24,6 +24,7 @@ async function getLeaderboard() {
   });
 
   const leaderboard = users
+    .filter((user) => user.team?.players.length === 11) // Only include users with a full team of 11 players
     .map((user) => {
       const teamPlayers = user.team?.players ?? [];
       const totalPoints = teamPlayers.reduce(
@@ -32,8 +33,7 @@ async function getLeaderboard() {
       );
       return {
         username:    user.username,
-        totalPoints: parseFloat(totalPoints.toFixed(2)),
-        playerCount: teamPlayers.length,
+        totalPoints: parseFloat(totalPoints.toFixed(2))
       };
     })
     .sort((a, b) => b.totalPoints - a.totalPoints)
