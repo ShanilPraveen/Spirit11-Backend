@@ -1,5 +1,5 @@
 /**
- * Shared fantasy points & value calculation utilities.
+ * points & value calculation formulas
  *
  * Formulas:
  *   Batting Strike Rate  = (Total Runs / Total Balls Faced) * 100
@@ -32,7 +32,6 @@ function calculatePoints(runs, ballsFaced, inningsPlayed, wickets, oversBowled, 
 
   const battingStrikeRate = ballsFaced > 0 ? (runs / ballsFaced) * 100 : 0;
   const battingAverage    = inningsPlayed > 0 ? runs / inningsPlayed : 0;
-  // Bowling components are excluded when the player has no bowling contribution
   const bowlingStrikeRate = wickets > 0 && ballsBowled > 0 ? ballsBowled / wickets : null;
   const economyRate       = ballsBowled > 0 ? (runsConceded / ballsBowled) * 6 : null;
 
@@ -58,7 +57,7 @@ function calculateValue(points) {
 }
 
 /**
- * Convenience wrapper — accepts a Prisma Player object directly.
+ * wrapper to accept a Prisma Player object directly.
  *
  * @param {{ runs: number, ballsFaced: number, inningsPlayed: number, wickets: number, oversBowled: number, runsConceded: number }} player
  * @returns {number}

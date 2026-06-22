@@ -1,8 +1,6 @@
 const prisma = require('../config/prisma');
 const { calculatePlayerPoints } = require('../utils/points');
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 /**
  * Finds a user's team or creates one if it doesn't exist yet.
  * This allows the first addPlayer call to work without a separate "create team" step.
@@ -17,12 +15,6 @@ async function findOrCreateTeam(userId) {
 
 /**
  * Builds the full team response object sent to the user.
- *
- * Individual player objects do NOT contain a `points` field — this prevents
- * the frontend from accidentally rendering per-player points.
- *
- * `totalPoints` is attached at the TEAM level (not per-player) so the UI can
- * display the team's aggregate score when all 11 players are selected.
  */
 async function buildTeamResponse(userId) {
   const team = await prisma.team.findUnique({
@@ -37,10 +29,9 @@ async function buildTeamResponse(userId) {
 
   if (!team) return null;
 
-  // Plain player objects — NO points field
+  // Plain player objects. NO points field
   const players = team.players.map((tp) => tp.player);
 
-  // Team-level aggregate only (used to show total score when team is complete)
   const totalPoints = parseFloat(
     team.players
       .reduce((sum, tp) => sum + calculatePlayerPoints(tp.player), 0)
@@ -50,8 +41,6 @@ async function buildTeamResponse(userId) {
   return { ...team, players, totalPoints };
 }
 
-
-// ── Team service functions ───────────────────────────────────────────────────
 
 /**
  * Returns the authenticated user's team.

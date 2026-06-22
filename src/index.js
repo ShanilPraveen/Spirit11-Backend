@@ -14,11 +14,10 @@ const chatbotRoutes     = require('./routes/chatbot.routes');
 const app        = express();
 const httpServer = http.createServer(app);
 
-// ── WebSocket (Socket.IO) ────────────────────────────────────────────────────
-// Must be initialised before routes so controllers can call getIO() safely.
+// WebSocket 
 initSocket(httpServer);
 
-// ── Global middleware ────────────────────────────────────────────────────────
+// Middleware 
 app.use(cors({
   origin:      process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
@@ -27,27 +26,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ── API routes ───────────────────────────────────────────────────────────────
+// API routes
 app.use('/api/auth',        authRoutes);
 app.use('/api/players',     playerRoutes);
 app.use('/api/teams',       teamRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/chatbot',     chatbotRoutes);
 
-// ── Health check ─────────────────────────────────────────────────────────────
+// Health check 
 app.get('/', (req, res) => {
   res.json({ status: 'ok', message: 'Spirit11 backend is running!' });
 });
 
-// ── Start ────────────────────────────────────────────────────────────────────
+// Start 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-  console.log(`🚀 HTTP server   → http://localhost:${PORT}`);
-  console.log(`🔌 WebSocket     → ws://localhost:${PORT}`);
+  console.log(`HTTP server   → http://localhost:${PORT}`);
+  console.log(`WebSocket     → ws://localhost:${PORT}`);
 });
 
-// ── Global Process Safety ────────────────────────────────────────────────────
 // Prevent background SDK parsing or connection issues from taking down the server.
 process.on('unhandledRejection', (reason, promise) => {
-  console.warn('⚠️ Unhandled Promise Rejection (Process Saved from Crash):', reason);
+  console.warn('Unhandled Promise Rejection (Process Saved from Crash):', reason);
 });

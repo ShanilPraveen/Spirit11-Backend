@@ -6,7 +6,7 @@ const { calculatePlayerPoints } = require('../utils/points');
  *
  * Total team points = sum of calculatePlayerPoints(player) for all players in the team.
  * Only users with role 'user' appear on the leaderboard (admin is excluded).
- * Sorted by totalPoints descending; rank is 1-indexed.
+ * Sorted by totalPoints descending.
  */
 async function getLeaderboard() {
   const users = await prisma.user.findMany({

@@ -2,9 +2,7 @@ const teamService = require('../services/team.service');
 const { getIO } = require('../config/socket');
 
 /**
- * GET /api/teams/my
- * Returns the authenticated user's team (null if they have none yet).
- * userId is always taken from the verified JWT — never from the request body.
+ * Returns the authenticated user's team
  */
 async function getMyTeam(req, res) {
   try {
@@ -16,9 +14,7 @@ async function getMyTeam(req, res) {
 }
 
 /**
- * POST /api/teams/addPlayer
- * Body: { playerId: string }
- * userId comes from JWT — body only needs the playerId.
+ * Adds a player to the user's team
  */
 async function addPlayerToTeam(req, res) {
   const { playerId } = req.body;
@@ -37,9 +33,7 @@ async function addPlayerToTeam(req, res) {
 }
 
 /**
- * DELETE /api/teams/removePlayer/:id
- * :id = playerId to remove
- * userId comes from JWT.
+ * Removes a player from the user's team
  */
 async function removePlayerFromTeam(req, res) {
   const playerId = req.params.id;

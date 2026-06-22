@@ -6,8 +6,6 @@ const bcrypt = require('bcryptjs');
 const ACCESS_SECRET  = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
-// ── Token helper ─────────────────────────────────────────────────────────────
-
 /**
  * Generates a new access token and rotates the refresh token.
  * The refresh token is stored in the DB and sent as an HttpOnly cookie.
@@ -43,7 +41,7 @@ async function generateTokens(user, res) {
   return accessToken;
 }
 
-// ── Auth service functions ───────────────────────────────────────────────────
+// Auth service functions
 
 async function signup(username, password, role, res) {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -127,7 +125,6 @@ async function refresh(refreshTokenValue, res) {
 
 async function logout(refreshTokenValue) {
   if (refreshTokenValue) {
-    // Ignore errors — token may already be gone
     await prisma.refreshToken.deleteMany({ where: { token: refreshTokenValue } });
   }
 }

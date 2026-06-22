@@ -5,11 +5,11 @@ let io;
 
 /**
  * Initializes the Socket.IO server and attaches it to the given HTTP server.
- * Must be called once at application startup (in index.js).
+ * called once at application startup.
  *
  * Events emitted by the server:
  *   - 'players:updated'      → any player was created, updated, or deleted
- *   - 'leaderboard:updated'  → team composition changed (affects rankings)
+ *   - 'leaderboard:updated'  → team composition changed
  *   - 'team:updated'         → emitted to a user-specific room when their team changes
  *
  * Clients should join their personal room by emitting 'join:user' with their userId
@@ -42,7 +42,7 @@ function initSocket(httpServer) {
 
 /**
  * Returns the initialized Socket.IO instance.
- * Call this from controllers or services that need to emit events.
+ * Called this from controllers or services that need to emit events.
  */
 function getIO() {
   if (!io) throw new Error('Socket.IO has not been initialized. Call initSocket() first.');
