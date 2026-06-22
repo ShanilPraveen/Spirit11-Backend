@@ -1,18 +1,13 @@
 const prisma = require('../config/prisma');
 const { calculatePlayerPoints, calculatePoints, calculateValue } = require('../utils/points');
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Attaches computed points to a player object (does not mutate DB). */
+/** Attaches computed points to a player object. */
 function withPoints(player) {
   return { ...player, points: calculatePlayerPoints(player) };
 }
 
-// ── Player service functions ─────────────────────────────────────────────────
-
 /**
  * Returns a paginated, optionally filtered list of players.
- * Default limit is 100 to return the full roster in one call for the user UI.
  */
 async function getAllPlayers({ position, university, page = 1, limit = 100 } = {}) {
   const filters = {};
@@ -33,7 +28,7 @@ async function getAllPlayers({ position, university, page = 1, limit = 100 } = {
   ]);
 
   return {
-    data: players, // points NOT included here — user-facing lists must not show points
+    data: players, // points NOT included here
     page: pageNum,
     totalPages: Math.ceil(total / limitNum),
     totalPlayers: total,
@@ -44,7 +39,7 @@ async function getAllPlayers({ position, university, page = 1, limit = 100 } = {
  * Returns a single player by ID.
  *
  * @param {string}  id
- * @param {boolean} includePoints - true only for admin callers; NEVER set for user-facing requests.
+ * @param {boolean} includePoints - true only for admin callers
  */
 async function getPlayerById(id, includePoints = false) {
   const player = await prisma.player.findUnique({ where: { id } });
@@ -72,7 +67,7 @@ async function createPlayer(data) {
 
 /** Updates an existing player (admin only). Recomputes and persists value from updated stats. Returns the updated player with computed points. */
 async function updatePlayer(id, data) {
-  // We need the current player to fill in any fields not provided in the update
+  // Need the current player to fill in any fields not provided in the update
   const current = await prisma.player.findUnique({ where: { id } });
   if (!current) {
     const err = new Error('Player not found');

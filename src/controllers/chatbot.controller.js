@@ -1,7 +1,7 @@
 const chatbotService = require('../services/chatbot.service');
 
 /**
- * Handles SSE (Server-Sent Events) streaming for the chatbot response.
+ * Handles SSE streaming for the chatbot response.
  */
 async function streamChat(req, res, next) {
   const { message, budget, rosterCount } = req.body;
@@ -24,7 +24,7 @@ async function streamChat(req, res, next) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders(); // Establishes stream connection immediately
+    res.flushHeaders(); 
 
     const stream = await chatbotService.getChatStream({
       message,
@@ -47,16 +47,15 @@ async function streamChat(req, res, next) {
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (error) {
-    // If the request was aborted by client disconnect, end cleanly without throwing/logging errors
     if (error.name === 'AbortError' || abortController.signal.aborted) {
-      console.log("⏹️ Chat stream aborted successfully.");
+      console.log("Chat stream aborted successfully.");
       if (!res.writableEnded) {
         res.end();
       }
       return;
     }
 
-    console.error("❌ Error in streamChat controller:", error);
+    console.error("Error in streamChat controller:", error);
     
     // If response headers have already been sent, stream the error token
     if (res.headersSent) {
@@ -77,7 +76,7 @@ async function clearHistory(req, res, next) {
     await chatbotService.clearChatHistory(userId);
     res.status(200).json({ status: "success", message: "Conversation history cleared." });
   } catch (error) {
-    console.error("❌ Error in clearHistory controller:", error);
+    console.error("Error in clearHistory controller:", error);
     next(error);
   }
 }

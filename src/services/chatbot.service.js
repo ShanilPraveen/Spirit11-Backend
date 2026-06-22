@@ -6,14 +6,12 @@ const { HumanMessage, SystemMessage } = require("@langchain/core/messages");
 const { z } = require("zod");
 const prisma = require("../config/prisma");
 
-// ── Rate limiter/API configuration ──────────────────────────────────────────
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// ── Tool definitions ─────────────────────────────────────────────────────────
+// Tool definitions
 
 /**
  * Fetches players from the database with filtering capability.
- * CRITICAL: Strips point values from results.
  */
 const getPlayersTool = tool(
   async ({ position, university, maxPrice, search }) => {
@@ -63,7 +61,6 @@ const getPlayersTool = tool(
 
 /**
  * Compares two players side-by-side.
- * CRITICAL: Strips point values.
  */
 const comparePlayersTool = tool(
   async ({ player1Name, player2Name }) => {
@@ -112,7 +109,7 @@ const comparePlayersTool = tool(
 
 const tools = [getPlayersTool, comparePlayersTool];
 
-// ── Agent Setup ──────────────────────────────────────────────────────────────
+// Agent Setup 
 
 // In-memory memory checkpointer
 const memorySaver = new MemorySaver();
